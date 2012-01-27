@@ -1,7 +1,10 @@
 require 'helper'
 
 class TestLandlord < Test::Unit::TestCase
-  should "probably rename this file and start testing for real" do
-    flunk "hey buddy, you should probably rename this file and start testing for real"
+  def test_module
+    assert Landlord
+
+    assert Landlord::VERSION
+    assert !Landlord::VERSION.empty?
   end
 end

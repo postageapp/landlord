@@ -1,0 +1,70 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+
+$LOAD_PATH << File.expand_path(File.join('..', 'lib'), File.dirname(__FILE__))
+
+require 'landlord'
+
+def show_version
+  puts "landlord #{Landlord::VERSION}"
+end
+
+# == Main ===================================================================
+
+action = nil
+
+options = {
+  :redirects => [ ],
+  :aliases => [ ]
+}
+
+OptionParser.new do |parser|
+  parser.banner = "Usage: landlord [options] command hostname [hostname [...]]"
+
+  parser.separator ""
+  parser.separator "Specific commands:"
+  
+  parser.separator "    %-32s %s" % [ 'add', 'Add a virtual host and configuration file' ]
+  parser.separator "    %-32s %s" % [ 'remove', 'Remove a virtual host configuration file' ]
+  parser.separator "    %-32s %s" % [ 'enable', 'Enable a virtual host configuration file' ]
+  parser.separator "    %-32s %s" % [ 'disable', 'Disable a virtual host configuration file' ]
+
+  parser.separator ""
+  parser.separator "Specific options:"
+
+  parser.on('-a', '--alias=s', 'Create an alias for this virtual host') do |s|
+    options[:aliases] << s
+  end
+  parser.on('-r', '--redirect=s', 'Create a redirect for this virtual host') do |s|
+    options[:redirects] << s
+  end
+  parser.on('-f', '--config=s', 'Specify an alternate configuration file') do |s|
+    options[:config] = s
+  end
+  parser.on('--verbose', 'Verbose mode') do
+    options[:verbose] = true
+  end
+  parser.on('-v', '--version', 'Display version number') do
+    show_version
+    exit(0)
+  end
+  parser.on('-h', '--help', 'Show this help') do
+    puts parser
+    exit(0)
+  end
+end.parse!.each do |arg|
+  if (arg.match(/\./))
+    virtual_host = Landlord::VirtualHost.new(arg)
+  
+    case (action)
+    when :add, :remove, :enable, :disable
+      virtual_host.send(:"#{action}!")
+    else
+      puts "landlord: Unknown command '#{arg}'"
+      exit(-1)
+    end
+  else
+    action = arg.to_sym
+  end
+end
